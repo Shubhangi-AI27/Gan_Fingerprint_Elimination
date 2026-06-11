@@ -7,9 +7,9 @@ from PIL import Image
 from tqdm import tqdm
 
 # ── 1. DEFINE ABSOLUTE PATHS ──────────────────────────────────────────
-WORKING_DIR = '/kaggle/working'
-DATASET_DIR = os.path.join(WORKING_DIR, 'dataset/GANs/ProGAN/celeba_align_png_cropped')
-ZIP_OUT_PATH = os.path.join(WORKING_DIR, 'progan_generated_samples') # shutil adds .zip automatically
+BASE_DIR = os.getcwd()
+DATASET_DIR = os.path.join(BASE_DIR, 'dataset/GANs/ProGAN/celeba_align_png_cropped')
+ZIP_OUT_PATH = os.path.join(BASE_DIR, 'progan_generated_samples')
 
 os.makedirs(DATASET_DIR, exist_ok=True)
 
