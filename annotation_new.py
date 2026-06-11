@@ -1,7 +1,24 @@
 """
 Step 1 — Annotation Generator
-Run this first. Generates train/val/test annotation files.
-Images are resized to 128×128 and saved to RESIZED_DIR before annotation.
+Run this first. Generates train/val/test annotation files. Resizes images to 128×128.
+
+Dataset Sources :
+MMDGAN : https://github.com/ICTMCG/DNA-Det
+SNGAN  : https://github.com/ICTMCG/DNA-Det
+CramerGAN : https://github.com/ICTMCG/DNA-Det
+StyleGAN :  https://github.com/ksmolko/stylegan-detector
+
+StyleGAN2-ADA (additional batch):
+     Repo      : https://github.com/NVlabs/stylegan2-ada-pytorch
+     Weights   : https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/ffhq.pkl
+     Generated : 2000 images at 1024×1024, truncation_psi=0.7
+     Script    : generation_scripts/stylegan2_generate.py
+
+ProGAN (Custom Generation Pipeline):
+     Weights   : TensorFlow Hub CelebA-HQ (https://tfhub.dev/google/progan-128/1)
+     Generated : 3000-5000 images at 128×128 resolution using pre-trained weights.
+     Template  : PyTorch structural architecture implementation also provided.
+     Scripts   : generation_scripts/progan_tfhub_generate.py & progan_pytorch_template.py
 Only edit the paths in CLASS_DIR_MAP, ANN_DIR, and RESIZED_DIR.
 """
 
@@ -27,7 +44,7 @@ IMAGES_PER_CLASS = 5000
 SPLIT            = (0.70, 0.15, 0.15)
 SEED             = 42
 TARGET_SIZE      = (128, 128)
-# ══════════════════════════════════════════════════════
+
 
 CLASS_NAMES = ["Real", "ProGAN", "MMDGAN", "SNGAN", "StyleGAN", "CramerGAN"]
 EXTENSIONS  = {".jpg", ".jpeg", ".png", ".webp"}
@@ -51,13 +68,6 @@ print()
 
 # ── Resize helper ──────────────────────────────────────
 def resize_and_save(src_path: Path, cls: str) -> Path:
-    """
-    Resize src_path to TARGET_SIZE and save to RESIZED_DIR/<cls>/<folder>_<filename>.
-    Prefixes with parent folder name to avoid collisions when multiple
-    source folders share the same filenames (e.g. 001.jpg in both folders).
-    Returns the path of the saved resized image, or None on error.
-    Skips if the destination already exists (safe to re-run).
-    """
     dest_dir = Path(RESIZED_DIR) / cls
     dest_dir.mkdir(parents=True, exist_ok=True)
 
