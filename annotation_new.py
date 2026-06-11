@@ -29,17 +29,17 @@ from PIL import Image
 # ══════════════════════════════════════════════════════
 # EDIT ONLY THESE PATHS
 # ══════════════════════════════════════════════════════
+BASE_DIR = os.getcwd()
 CLASS_DIR_MAP = {
-    "Real"      : ["/data1/intern/1024","/data1/intern/real_data","/data1/intern/64000","/data1/intern/65000"],
-    "ProGAN"    : ["/data1/intern/Progan_3000","/data1/intern/Progan"],
-    "MMDGAN"    : ["/data1/intern/celeba_align_png_cropped"],
-    "SNGAN"     : ["/data1/intern/sngan_data"],
-    "StyleGAN"  : ["/data1/intern/stylenew","/data1/intern/stylenew1","/data1/intern/stylenew2/Style_data","/data1/intern/Stylegan"],
-    "CramerGAN" : ["/data1/intern/cramer_data"],
+    "Real"      : [os.path.join(BASE_DIR, "dataset/Real")],
+    "ProGAN"    : [os.path.join(BASE_DIR, "dataset/GANs/ProGAN/celeba_align_png_cropped")],
+    "MMDGAN"    : [os.path.join(BASE_DIR, "dataset/GANs/MMDGAN")],
+    "SNGAN"     : [os.path.join(BASE_DIR, "dataset/GANs/SNGAN")],
+    "StyleGAN"  : [os.path.join(BASE_DIR, "dataset/GANs/StyleGAN")],
+    "CramerGAN" : [os.path.join(BASE_DIR, "dataset/GANs/CramerGAN")],
 }
-
-ANN_DIR          = "/data1/intern/dnadet_new/annotations"
-RESIZED_DIR      = "/data1/intern/dnadet/resized_128"   # resized images go here
+ANN_DIR     = os.path.join(BASE_DIR, "annotations")
+RESIZED_DIR = os.path.join(BASE_DIR, "resized_128")
 IMAGES_PER_CLASS = 5000
 SPLIT            = (0.70, 0.15, 0.15)
 SEED             = 42
