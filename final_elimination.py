@@ -3,10 +3,10 @@ Untraceable DeepFakes via Traceable Fingerprint Elimination
 ============================================================
 Paper  : Lai et al., AAAI 2026  (arXiv:2508.03067)
 Target : ProGAN, StyleGAN, SNGAN, CramerGAN, MMDGAN
-Dataset: FFHQ 128x128 thumbnails (70 000 faces)
+Dataset: FFHQ 128x128 thumbnails (70,000 faces)
 Test   : DNA-Det attribution model
 
-ALL FIXES APPLIED (vs previous broken version)
+ALL FIXES APPLIED 
 ───────────────────────────────────────────────
 FIX 1 — PerceptualLoss float32 cast  [ROOT CAUSE — kills ProGAN/StyleGAN]
          Added pred.float() + target.float() at start of forward().
@@ -35,19 +35,9 @@ FIX 5 — Sampling bias toward nearest-neighbour  [ProGAN coverage]
 
 FIX 6 — GradScaler reset  [was using stale scale from broken run]
          init_scale=2**10 instead of default 2**16.
-
-Expected ASR after full retrain (150-200 epochs, batch=32 on A6000):
-  ProGAN    : 80–97%   (was 1.3%)
-  StyleGAN  : 75–95%   (was 19.3%)
-  SNGAN     : 80–95%   (was 48%)
-  CramerGAN : 90–99%   (was 99.3% — stays)
-  MMDGAN    : 90–100%  (was 100% — stays)
-  Overall   : 83–97%   (was 53.6%)
 """
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 1 — IMPORTS
-# ══════════════════════════════════════════════════════════════════
+
 import io
 import os
 import json
@@ -84,11 +74,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Device  : {device}")
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 2 — CONFIG
-# ══════════════════════════════════════════════════════════════════
+
 CONFIG = {
     # ── paths ──────────────────────────────────────────────────────
+    # NOTE: Change image_folder to your FFHQ dataset location before running
     "image_folder"   : "/data1/intern/thumbnails128x128",
     "checkpoint_dir" : "./checkpoints_fixed_v1",
     "output_dir"     : "./outputs_fixed_v1",
@@ -99,7 +88,7 @@ CONFIG = {
 
     # ── training ───────────────────────────────────────────────────
     "epochs"         : 200,
-    "batch_size"     : 32,       # A6000 has 47GB — use 32 for 1.8x speed
+    "batch_size"     : 32,       
     "lr"             : 2e-4,
     "lr_min"         : 1e-6,
     "warmup_epochs"  : 5,
@@ -118,10 +107,8 @@ CONFIG = {
     "beta1"          : 0.5,      # perceptual
     "beta2"          : 0.1,      # spatial
     "beta3"          : 0.4,      # spectral
-
-    # ── FIX 5: p1 raised 0.5 → 0.7 for ProGAN nearest-neighbour ───
-    "p1"             : 0.7,      # was 0.5 — sampling unit fires 70% of steps
-    "p2"             : 0.8,      # transform unit probability — unchanged
+    "p1"             : 0.7,     
+    "p2"             : 0.8,      
 }
 
 for d in [CONFIG["checkpoint_dir"], CONFIG["output_dir"]]:
@@ -139,9 +126,7 @@ print(f"  p1           : {CONFIG['p1']}  (FIX 5: was 0.5)")
 print(f"  beta         : {CONFIG['beta1']} / {CONFIG['beta2']} / {CONFIG['beta3']}")
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 3 — DATASET
-# ══════════════════════════════════════════════════════════════════
+
 class RealImageDataset(Dataset):
     def __init__(self, folder, transform, max_samples=None):
         all_images = sorted([
@@ -188,15 +173,7 @@ print(f"Steps / epoch : {len(loader):,}")
 print(f"Total steps   : {len(loader) * CONFIG['epochs']:,}")
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 4 — DATA SYNTHESIS MODULE
-#
-# Paper transforms only (6) — no GAN-specific extras (FIX 2):
-#   noise | blur | crop | jpeg | relight | combo
-#
-# FIX 3: Real PIL JPEG replaces bilinar proxy (_jpeg_real).
-# FIX 5: sampling_unit biased toward nearest-neighbour.
-# ══════════════════════════════════════════════════════════════════
+
 class DataSynthesisModule(nn.Module):
 
     def __init__(self, p1=0.7, p2=0.8):
@@ -204,7 +181,6 @@ class DataSynthesisModule(nn.Module):
         self.p1 = p1
         self.p2 = p2
 
-    # ── FIX 5: sampling unit — biased toward nearest-neighbour ─────
     @torch.no_grad()
     def sampling_unit(self, x):
         """
@@ -272,8 +248,7 @@ class DataSynthesisModule(nn.Module):
 
         B, C, H, W = x.shape
 
-        # FIX 2: paper's 6 transforms only — checkerboard/spectral_norm/
-        # fft_phase removed. They caused overfitting to simulated patterns.
+       
         t = random.choice([
             "noise", "blur", "crop", "jpeg", "relight", "combo"
         ])
@@ -342,9 +317,7 @@ print("  FIX 3: _jpeg_real() via PIL BytesIO")
 print(f"  FIX 5: sampling nearest={0.5} bilinear={0.3} bicubic={0.2}  p1={CONFIG['p1']}")
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 5 — MODEL ARCHITECTURE  (paper exact)
-# ══════════════════════════════════════════════════════════════════
+
 class ResidualBlock(nn.Module):
     def __init__(self, ch):
         super().__init__()
@@ -400,8 +373,6 @@ class Decoder(nn.Module):
             nn.Tanh())
 
     def _init_weights(self):
-        # FIX 4: small init on final conv → clamp saturation < 2% at init
-        # was 33.6% of pixels hitting clamp before this fix
         nn.init.xavier_uniform_(self.out[0].weight, gain=0.1)
         nn.init.zeros_(self.out[0].bias)
 
@@ -430,9 +401,6 @@ print("EliminationModel : Encoder(Conv×3 + Res×5) + Decoder(Up×2 + Conv)")
 print("  FIX 4: decoder final conv init gain=0.1 → clamp sat < 2%")
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 6 — GBMS SMOOTHER  (paper exact, unchanged)
-# ══════════════════════════════════════════════════════════════════
 class _GaussianBlur(nn.Module):
     def __init__(self, ks=5, sigma=1.0):
         super().__init__()
@@ -497,10 +465,6 @@ class GBMSSmoother(nn.Module):
 print("GBMSSmoother : GaussianBlur(ks=5,σ=1) + MeanShift(ks=7,σs=3,σr=0.1)")
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 7 — LOSS FUNCTIONS
-# ══════════════════════════════════════════════════════════════════
-
 class PerceptualLoss(nn.Module):
     """
     VGG16 perceptual loss on relu1_2, relu2_2, relu3_3.
@@ -527,12 +491,6 @@ class PerceptualLoss(nn.Module):
             "std",  torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1))
 
     def forward(self, pred, target):
-        # FIX 1 (COMPLETE): escape autocast entirely with enabled=False.
-        # pred.float() alone is not enough — self.mean/std buffers are
-        # also cast to float16 inside autocast context, so the division
-        # immediately promotes back to float16 before VGG sees the data.
-        # torch.amp.autocast(enabled=False) creates a float32-only sub-scope
-        # that fully overrides the outer autocast — VGG runs in float32.
         with torch.amp.autocast("cuda", enabled=False):
             pred   = pred.float()
             target = target.float()
@@ -562,10 +520,6 @@ class SpectralLoss(nn.Module):
       L(x, si) = log(|fft(x^si)| + eps)
       L_spectral = Σ_si wi * ||L(Phi(xs),si) - L(xr,si)||₁
       scales={1.0,0.5,0.25}, weights={0.5,0.3,0.2}
-
-    NO fftshift — paper does not use it.
-    fftshift was moving ProGAN corner-frequency peaks to centre,
-    breaking gradient signal. Already correct in previous version.
     """
 
     def __init__(self, eps=1e-8):
@@ -625,10 +579,6 @@ print("PerceptualLoss : VGG16 relu1_2/relu2_2/relu3_3  — FIX 1: float32 cast")
 print("SpectralLoss   : paper-exact fft2, log|F|+eps, NO fftshift")
 print(f"TotalLoss      : β1={CONFIG['beta1']} β2={CONFIG['beta2']} β3={CONFIG['beta3']}")
 
-
-# ══════════════════════════════════════════════════════════════════
-# CELL 8 — BUILD ALL COMPONENTS
-# ══════════════════════════════════════════════════════════════════
 model = EliminationModel(
     in_ch = 3,
     bc    = CONFIG["base_channels"],
@@ -653,9 +603,6 @@ scheduler = optim.lr_scheduler.CosineAnnealingLR(
     T_max   = CONFIG["epochs"] - CONFIG["warmup_epochs"],
     eta_min = CONFIG["lr_min"],
 )
-
-# FIX 6: reset GradScaler — init_scale=2**10 (not default 2**16)
-# Previous run had stale scale from broken float16 overflow run.
 scaler = torch.amp.GradScaler("cuda",
     enabled    = torch.cuda.is_available(),
     init_scale = 2**10,
@@ -672,9 +619,6 @@ print(f"Scheduler    : warm-up {CONFIG['warmup_epochs']} ep → CosineAnnealing"
 print(f"GradScaler   : FIX 6: init_scale=2**10 (fresh start)")
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 9 — LR WARM-UP HELPER
-# ══════════════════════════════════════════════════════════════════
 def get_warmup_lr(epoch, warmup_epochs, base_lr):
     """Linear warm-up: lr goes from base_lr/10 to base_lr over warmup_epochs."""
     if epoch < warmup_epochs:
@@ -687,15 +631,11 @@ def set_lr(optimizer, lr):
         pg["lr"] = lr
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 10 — RESUME LOGIC
-# ══════════════════════════════════════════════════════════════════
+
 start_epoch = 0
 best_loss   = float("inf")
 history     = []
 
-# NOTE: Do NOT resume from old broken checkpoints.
-# New checkpoint_dir is ./checkpoints_fixed_v1 — always starts fresh.
 if os.path.exists(CKPT_LATEST):
     print(f"\nResuming from {CKPT_LATEST} ...")
     ckpt = torch.load(CKPT_LATEST, map_location=device)
@@ -715,9 +655,6 @@ else:
     print("\nNo checkpoint found — starting fresh (correct for first run)")
 
 
-# ══════════════════════════════════════════════════════════════════
-# CELL 11 — HELPERS
-# ══════════════════════════════════════════════════════════════════
 def save_checkpoint(path, epoch, avg_loss):
     torch.save({
         "epoch"    : epoch,
@@ -822,19 +759,6 @@ def save_curves():
         dpi=120, bbox_inches="tight")
     plt.close()
 
-
-# ══════════════════════════════════════════════════════════════════
-# CELL 12 — TRAINING LOOP
-#
-# Per-batch flow:
-#   1. Synthesize (xr, xs) from real batch             [no_grad]
-#   2. model(xs*2-1) → pred  [-1,1]
-#   3. pred → pred_01  [0,1]
-#   4. loss(pred_01, xr)  ← gradients flow here
-#      FIX 1: PerceptualLoss casts to float32 internally
-#   5. backward + grad_clip + step
-#   6. smoother(pred_01) → pred_smooth                 [no_grad, viz only]
-# ══════════════════════════════════════════════════════════════════
 print(f"\n{'='*65}")
 print(f"TRAINING  epoch {start_epoch+1} → {CONFIG['epochs']}")
 print(f"Dataset   : FFHQ 128×128  ({len(dataset):,} images)")
@@ -886,8 +810,6 @@ for epoch in range(start_epoch, CONFIG["epochs"]):
             pred_01 = ((pred + 1.0) / 2.0).clamp(0, 1)
 
             # Step 4 — loss
-            # FIX 1: PerceptualLoss.forward() casts pred/target to float32
-            # internally — VGG never sees float16 — no overflow possible
             xr_01      = xr.clamp(0, 1)
             loss, comp = criterion(pred_01, xr_01)
 
@@ -974,10 +896,6 @@ print(f"Checkpoints: {CKPT_DIR}/")
 print(f"Outputs    : {CONFIG['output_dir']}/")
 print(f"{'='*65}")
 
-
-# ══════════════════════════════════════════════════════════════════
-# CELL 13 — INFERENCE
-# ══════════════════════════════════════════════════════════════════
 def eliminate_fingerprint(img_input, checkpoint=CKPT_BEST):
     """
     Eliminate GAN fingerprint from a single image.
@@ -1014,14 +932,6 @@ def eliminate_fingerprint(img_input, checkpoint=CKPT_BEST):
 
 
 def batch_eliminate(input_folder, output_folder, checkpoint=CKPT_BEST):
-    """
-    Eliminate fingerprints from all images in a folder.
-
-    Usage
-    -----
-    batch_eliminate('progan_images/', 'progan_untraceable/')
-    batch_eliminate('stylegan_images/', 'stylegan_untraceable/')
-    """
     os.makedirs(output_folder, exist_ok=True)
     files = [f for f in os.listdir(input_folder)
              if f.lower().endswith((".png", ".jpg", ".jpeg"))]
@@ -1051,39 +961,6 @@ if os.path.exists(CKPT_BEST):
 else:
     print("best_model.pth not found — run training loop first")
 
-
-# ══════════════════════════════════════════════════════════════════
-# CELL 14 — REFERENCE: EXPECTED VALUES
-#
-# With all fixes applied (batch=32, A6000, lr=2e-4, warm-up 5 ep):
-#
-#  Epoch   1 : Loss ~0.30-0.50  Perc ~0.20-0.50  PSNR ~22-25 dB
-#              Perc must NOT spike > 1.0 — confirms FIX 1 working
-#  Epoch   5 : Loss ~0.20-0.30  Perc ~0.15-0.30  PSNR ~25-27 dB  warm-up ends
-#  Epoch  10 : Loss ~0.12-0.18  Perc ~0.10-0.20  PSNR ~27-29 dB
-#  Epoch  30 : Loss ~0.07-0.10  Perc ~0.07-0.12  PSNR ~29-31 dB
-#  Epoch  50 : Loss ~0.05-0.07  Perc ~0.05-0.09  PSNR ~30-32 dB
-#  Epoch 100 : Loss ~0.03-0.05                   PSNR ~31-33 dB
-#  Epoch 150 : Loss ~0.02-0.04                   PSNR ~32-34 dB
-#
-# SSIM:
-#  Epoch  10 : ~0.82-0.87
-#  Epoch  50 : ~0.89-0.93
-#  Epoch 150 : ~0.92-0.96  (paper: 0.963)
-#
-# ASR on DNA-Det (expected after 150-200 epochs with all fixes):
-#  ProGAN    : 80-97%   ← FIX 1 + FIX 5
-#  StyleGAN  : 75-95%   ← FIX 1
-#  SNGAN     : 80-95%   ← FIX 2
-#  CramerGAN : 90-99%   ← was already 99.3%, stays
-#  MMDGAN    : 90-100%  ← was already 100%, stays
-#  Overall   : 83-97%
-#
-# ABORT CRITERIA (stop and re-check fixes if):
-#  Perc > 1.0 at epoch 1 → FIX 1 not applied correctly
-#  Loss not decreasing by epoch 5 → check checkpoint_dir is new folder
-#  PSNR stuck below 25 dB at epoch 10 → check FIX 4 (weight init)
-# ══════════════════════════════════════════════════════════════════
 print("\nReference — expected loss / PSNR / SSIM (all fixes applied):")
 print("  Epoch   1 : Loss ~0.30-0.50   Perc ~0.20-0.50   PSNR ~22-25 dB")
 print("  Epoch  10 : Loss ~0.12-0.18   Perc ~0.10-0.20   PSNR ~27-29 dB")
