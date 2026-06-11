@@ -1,11 +1,5 @@
 """
-Step 2 — DNA-Det Training (Fixed Version)
-Fixes from original:
-  1. Removed double-weighting (sampler + class_weights conflict)
-  2. 60 epochs instead of 35
-  3. Per-class accuracy logged every epoch
-  4. Best model saved on min per-class accuracy not overall accuracy
-  5. Early collapse detection with warnings
+Step 2 — DNA-Det Training 
 """
 
 import os, json, time
@@ -25,8 +19,8 @@ from tqdm import tqdm
 # ══════════════════════════════════════════════════════
 # EDIT ONLY THESE TWO PATHS
 # ══════════════════════════════════════════════════════
-ANN_DIR  = "/data1/intern/dnadet_new/annotations"
-SAVE_DIR = "/data1/intern/dnadet_new/saved_model"
+ANN_DIR  = os.path.join(os.getcwd(), "annotations")
+SAVE_DIR = os.path.join(os.getcwd(), "saved_model")
 # ══════════════════════════════════════════════════════
 
 CONFIG = {
@@ -351,7 +345,7 @@ for epoch in range(1, CONFIG["num_epochs"] + 1):
     if epoch >= 10:
         for i, (name, acc) in enumerate(zip(CONFIG["class_names"], per_cls)):
             if acc < 0.10:
-                print(f"  ⚠️  COLLAPSE WARNING: {name} = {acc*100:.1f}% "
+                print(f"  COLLAPSE WARNING: {name} = {acc*100:.1f}% "
                       f"after epoch {epoch} — check your data!")
 
     # Checkpoint every 10 epochs
@@ -462,10 +456,10 @@ print(f"  Overall      : {overall_test*100:.2f}%")
 print(f"  Min class    : {per_cls_test.min()*100:.2f}%")
 print("="*50)
 if all_pass:
-    print("  ✅ READY — all classes > 70%, proceed to Fix 2")
+    print("   READY — all classes > 70%, proceed to Fix 2")
 else:
     worst = CONFIG["class_names"][per_cls_test.argmin()]
-    print(f"  ❌ NOT READY — {worst} is below 70%")
+    print(f"   NOT READY — {worst} is below 70%")
     print(f"     Share the confusion matrix and I will diagnose")
 print("="*50)
 
