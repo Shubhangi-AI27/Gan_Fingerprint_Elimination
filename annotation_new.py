@@ -18,7 +18,7 @@ ProGAN (Custom Generation Pipeline):
      Weights   : TensorFlow Hub CelebA-HQ (https://tfhub.dev/google/progan-128/1)
      Generated : 3000-5000 images at 128×128 resolution using pre-trained weights.
      Template  : PyTorch structural architecture implementation also provided.
-     Scripts   : generation_scripts/progan_tfhub_generate.py & progan_pytorch_template.py
+     Scripts   : generation_scripts/progan_tfhub_generate.py & progan_tfhub_5000images.py
 Only edit the paths in CLASS_DIR_MAP, ANN_DIR, and RESIZED_DIR.
 """
 
