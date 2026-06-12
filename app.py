@@ -10,6 +10,11 @@ Tab 4 : Full Pipeline            (Attribution → Elimination → Attribution ag
 Run:
     pip install gradio torch torchvision pillow scipy numpy
     python app.py
+Checkpoints:
+    Place model weights in ./checkpoints/ before running.
+    DNA-Det     : checkpoints/dnadet_best.pth
+    ForensicNet : checkpoints/forensicnet_best.pth
+    Elimination : checkpoints/elimination_best.pth
 """
 
 import os, io, json
