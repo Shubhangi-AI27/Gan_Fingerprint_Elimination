@@ -460,10 +460,9 @@ Available on request — contact:
 - DNA-Det Official Repository: https://github.com/PaddlePaddle/PaddleGAN
 - 140k Real and Fake Faces: https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces
 ## License
-
-Research code for academic purposes only.
-GAN-generated images are not redistributed.
-Refer to respective model licenses (NVIDIA, etc.) for generated content usage.
+Licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
+© 2026 Shubhangi Pandey, MIST Lab, IIT Bhilai
+For academic and research use only.
 
 ---
 
