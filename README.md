@@ -1,6 +1,6 @@
 # GAN Fingerprint Elimination & Deepfake Attribution
 
-> **Research Internship Project** — IIT Bhilai, MIST Lab (Jan–Jun 2025)
+> **Research Internship Project** — IIT Bhilai, MIST Lab (Jan–Jun 2026)
 > Supervisor: Dr. Sk. Subidh Ali
 > Based on: *Lai et al., "Untraceable DeepFakes via Traceable Fingerprint Elimination", AAAI 2026*
 > Paper: https://arxiv.org/abs/2412.09373
@@ -467,4 +467,4 @@ Refer to respective model licenses (NVIDIA, etc.) for generated content usage.
 
 ---
 
-*MIST Lab · IIT Bhilai · Internship Project · Jan–Jun 2025*
+*MIST Lab · IIT Bhilai · Internship Project · Jan–Jun 2026*
