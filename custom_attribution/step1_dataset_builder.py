@@ -1,6 +1,16 @@
 """
-Step 1 
-Dataset Builder
+Step 1 — Dataset Builder (ForensicNet)
+Builds a 4-class dataset for the custom ForensicNet attribution model.
+
+Classes : Real, ProGAN, StyleGAN, DCGAN
+Images  : 5,000 per class (20,000 total)
+Output  : dataset_v5/ with one subfolder per class
+
+Image Sources:
+  Real    : CelebA dataset — https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
+  ProGAN  : generation_scripts/progan_thub_5000images.py
+  StyleGAN: 
+  DCGAN   : Custom trained on CelebA (see generate/dcgan_generate.py)
 """
 
 import os
