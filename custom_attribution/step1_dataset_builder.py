@@ -6,12 +6,25 @@ Classes : Real, ProGAN, StyleGAN, DCGAN
 Images  : 5,000 per class (20,000 total)
 Output  : dataset_v5/ with one subfolder per class
 
-Image Sources:
-  Real    : CelebA dataset — https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
-  ProGAN  : generation_scripts/progan_thub_5000images.py
-  StyleGAN: 
-  DCGAN   : Custom trained on CelebA (see generate/dcgan_generate.py)
+Dataset Sources:
+  Real:
+    - FFHQ (Flickr Faces HQ)     : https://github.com/NVlabs/ffhq-dataset
+    - CelebA                     : https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
+    - 140k Real and Fake Faces   : https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces
+                                   (real split only — real_vs_fake/train/real)
+
+  StyleGAN:
+    - Generated images  :  generation_scripts/stylegan2_generate.py
+    - 140k Real and Fake Faces   : https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces
+                                   (fake split — real_vs_fake/train/fake)
+
+  ProGAN:
+    - Generated_images : generation_scripts/progan_tfhub_5000images.py
+
+  DCGAN:
+    - Generated images : generation_scripts/dcgan_generation.py, generation_scripts/dcgan_archA.py
 """
+
 
 import os
 import shutil
